@@ -55,10 +55,14 @@ namespace NatSuite.Recorders.Inputs {
             this.clock = clock;
             this.camera = camera;
             this.frameBuffer = new RenderTexture((int)camera.pixelRect.width, (int)camera.pixelRect.height, 24, RenderTextureFormat.ARGB32);
+            this.material = new Material(Shader.Find(@"Hidden/NCPX/BlitCopy"));
             this.commandBuffer = new CommandBuffer();
             // Setup camera
             camera.forceIntoRenderTexture = true;
-            commandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, frameBuffer);
+            var tempRT = Shader.PropertyToID("_MainTex");
+            commandBuffer.GetTemporaryRT(tempRT, frameBuffer.descriptor, FilterMode.Bilinear);
+            commandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, tempRT);
+            commandBuffer.Blit(tempRT, frameBuffer, material);
             camera.AddCommandBuffer(CameraEvent.AfterEverything, commandBuffer);
             // Start recording
             if (RenderPipelineManager.currentPipeline != null)
@@ -78,6 +82,7 @@ namespace NatSuite.Recorders.Inputs {
             else
                 Camera.onPostRender -= OnPostRender;
             // Release
+            Material.Destroy(material);
             input.Dispose();
             frameBuffer.Release();
         }
@@ -90,6 +95,7 @@ namespace NatSuite.Recorders.Inputs {
         private readonly IClock clock;
         private readonly Camera camera;
         private readonly RenderTexture frameBuffer;
+        private readonly Material material;
         private readonly CommandBuffer commandBuffer;
 
         private void OnPostRender (Camera cam) {

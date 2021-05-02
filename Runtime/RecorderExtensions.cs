@@ -13,6 +13,7 @@ namespace NatSuite.Recorders {
     /// </summary>
     public static class RecorderExtensions {
 
+        #region --Client API--
         /// <summary>
         /// Finish writing.
         /// </summary>
@@ -49,5 +50,12 @@ namespace NatSuite.Recorders {
             // Return new path
             return dst;
         }
+
+        /// <summary>
+        /// Convert the recorder to an asynchronous recorder which commits frames on a worker thread.
+        /// </summary>
+        /// <returns>Async recorder which wraps this recorder.</returns>
+        public static AsyncRecorder ToAsync (this IMediaRecorder recorder) => new AsyncRecorder(recorder);
+        #endregion
     }
 }

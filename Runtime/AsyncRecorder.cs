@@ -12,9 +12,9 @@ namespace NatSuite.Recorders {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Recorder wrapper which dispatches commits to worker threads.
+    /// Recorder which commits frames asynchronously on a worker thread.
     /// </summary>
-    public sealed class DispatchRecorder : IMediaRecorder { // DEPLOY // Rename this
+    public sealed class AsyncRecorder : IMediaRecorder { // DEPLOY
 
         #region --Client API--
         /// <summary>
@@ -23,17 +23,22 @@ namespace NatSuite.Recorders {
         public (int width, int height) frameSize => recorder.frameSize;
 
         /// <summary>
-        /// Create a dispatch recorder.
+        /// Create an async recorder.
         /// </summary>
-        /// <param name="recorder">Recorder to commit frames to.</param>
-        public DispatchRecorder (IMediaRecorder recorder) {
+        /// <param name="recorder">Backing recorder to receive committed frames.</param>
+        public AsyncRecorder (IMediaRecorder recorder) {
             this.recorder = recorder;
             this.queue = new ConcurrentQueue<(byte[], long)>();
+            this.fence = new AutoResetEvent(false);
             this.cts = new CancellationTokenSource();
             this.task = new Task(() => {
-                while (!cts.Token.IsCancellationRequested || queue.Count > 0) // We can't drop frames
+                while (!cts.Token.IsCancellationRequested)
                     if (queue.TryDequeue(out var frame))
                         recorder.CommitFrame(frame.Item1, frame.Item2);
+                    else
+                        fence.WaitOne();
+                while (queue.TryDequeue(out var frame)) // We can't drop frames
+                    recorder.CommitFrame(frame.Item1, frame.Item2);
             }, cts.Token, TaskCreationOptions.LongRunning);
             task.Start();
         }
@@ -61,6 +66,7 @@ namespace NatSuite.Recorders {
             var pixelBuffer = new byte[recorder.frameSize.width * recorder.frameSize.height * 4];
             Marshal.Copy((IntPtr)nativeBuffer, pixelBuffer, 0, pixelBuffer.Length);
             queue.Enqueue((pixelBuffer, timestamp));
+            fence.Set();
         }
 
         /// <summary>
@@ -87,9 +93,15 @@ namespace NatSuite.Recorders {
         /// Finish writing.
         /// </summary>
         /// <returns>Path to directory containing image sequence.</returns>
-        public Task<string> FinishWriting () {
+        public async Task<string> FinishWriting () {
+            // Stop worker
             cts.Cancel();
-            return task.ContinueWith(t => recorder.FinishWriting()).Unwrap();
+            fence.Set();
+            await task;
+            // Dispose
+            cts.Dispose();
+            fence.Dispose();
+            return await recorder.FinishWriting();
         }
         #endregion
 
@@ -97,6 +109,7 @@ namespace NatSuite.Recorders {
         #region --Operations--
         private readonly IMediaRecorder recorder;
         private readonly ConcurrentQueue<(byte[], long)> queue;
+        private readonly AutoResetEvent fence;
         private readonly CancellationTokenSource cts;
         private readonly Task task;
         #endregion
