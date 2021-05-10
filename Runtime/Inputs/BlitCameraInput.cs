@@ -60,10 +60,21 @@ namespace NatSuite.Recorders.Inputs {
             // Setup camera
             camera.forceIntoRenderTexture = true;
             var tempRT = Shader.PropertyToID("_MainTex");
+
+            commandBuffer.Clear();
+            //commandBuffer.GetTemporaryRT(tempRT, -1, -1, 24, FilterMode.Bilinear);
+            //commandBuffer.SetGlobalTexture("_MainTex", BuiltinRenderTextureType.CameraTarget);
+            commandBuffer.Blit(BuiltinRenderTextureType.CurrentActive, frameBuffer); //, new Vector2(1f, -1f), new Vector2(0.0f, 1f));
+
+            /*
             commandBuffer.GetTemporaryRT(tempRT, frameBuffer.descriptor, FilterMode.Bilinear);
             commandBuffer.Blit(BuiltinRenderTextureType.CameraTarget, tempRT);
             commandBuffer.Blit(tempRT, frameBuffer, material);
-            camera.AddCommandBuffer(CameraEvent.AfterEverything, commandBuffer);
+            */
+
+            //camera.AddCommandBuffer(CameraEvent.AfterEverything, commandBuffer);
+            camera.AddCommandBuffer(CameraEvent.AfterImageEffectsOpaque, commandBuffer);
+            
             // Start recording
             if (RenderPipelineManager.currentPipeline != null)
                 RenderPipelineManager.endCameraRendering += OnEndRender;

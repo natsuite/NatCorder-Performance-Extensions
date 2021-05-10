@@ -49,6 +49,6 @@ ___
 ## Resources
 - [NatCorder Documentation](https://docs.natsuite.io/natcorder)
 - [NatSuite Framework](https://github.com/natsuite)
-- [Email Support](mailto:yusuf@natsuite.io)
+- [Email Support](mailto:hi@natsuite.io)
 
 Thank you very much!
