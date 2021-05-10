@@ -20,7 +20,7 @@ namespace NatSuite.Recorders.Inputs {
         /// </summary>
         /// <param name="recorder">Media recorder to receive video frames.</param>
         /// <param name="filters">Filters to apply to frames before committing.</param>
-        public FilterTextureInput (IMediaRecorder recorder, params ITextureFilter[] filters) : this(CreateDefaultInput(recorder), filters) { }
+        public FilterTextureInput (IMediaRecorder recorder, params ITextureFilter[] filters) : this(CreateInput(recorder), filters) { }
 
         /// <summary>
         /// Create a filtered texture input.
@@ -73,11 +73,12 @@ namespace NatSuite.Recorders.Inputs {
         private readonly ITextureInput input;
         private readonly ITextureFilter[] filters;
 
-        private static ITextureInput CreateDefaultInput (IMediaRecorder recorder) {
+        (int, int) ITextureInput.frameSize => input.frameSize;
+
+        private static ITextureInput CreateInput (IMediaRecorder recorder) {
             if (SystemInfo.supportsAsyncGPUReadback) 
                 return new AsyncTextureInput(recorder);
-            else
-                return new TextureInput(recorder);
+            return new TextureInput(recorder);
         }
         #endregion
     }

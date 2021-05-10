@@ -58,6 +58,8 @@ namespace NatSuite.Recorders.Inputs {
 
         private IMediaRecorder recorder;
         private readonly MTLReadback readback;
+        
+        (int, int) ITextureInput.frameSize => recorder.frameSize;
         #endregion
     }
 }
