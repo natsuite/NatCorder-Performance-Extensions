@@ -11,7 +11,7 @@ namespace NatSuite.Recorders {
     /// WEBM video recorder.
     /// This recorder is only supported on WebGL.
     /// </summary>
-    public sealed class WEBMRecorder : NativeRecorder { // INCOMPLETE
+    public sealed class WEBMRecorder : NativeRecorder { // DEPLOY
 
         #region --Client API--
         /// <summary>

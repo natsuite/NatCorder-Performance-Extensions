@@ -87,7 +87,9 @@ namespace NatSuite.Recorders {
         /// <param name="nativeBuffer">Sample buffer in native memory to commit.</param>
         /// <param name="sampleCount">Total number of samples in the buffer.</param>
         /// <param name="timestamp">Sample buffer timestamp in nanoseconds.</param>
-        public unsafe void CommitSamples (float* nativeBuffer, int sampleCount, long timestamp) => recorder.CommitSamples(nativeBuffer, sampleCount, timestamp);
+        public unsafe void CommitSamples (float* nativeBuffer, int sampleCount, long timestamp) {
+            recorder.CommitSamples(nativeBuffer, sampleCount, timestamp);
+        }
 
         /// <summary>
         /// Finish writing.
