@@ -3,15 +3,14 @@
 *   Copyright (c) 2021 Yusuf Olokoba.
 */
 
-namespace NatSuite.Recorders.Filters {
+namespace NatSuite.Recorders.Inputs {
 
     using UnityEngine;
-    using Inputs;
 
     /// <summary>
     /// Recorder input for recording video frames from textures with a watermark.
     /// </summary>
-    public sealed class WatermarkFilter : ITextureFilter { // DEPLOY
+    public sealed class WatermarkTextureInput : ITextureInput { // DEPLOY
         
         #region --Client API--
         /// <summary>
@@ -31,23 +30,48 @@ namespace NatSuite.Recorders.Filters {
         public AspectMode aspectMode;
 
         /// <summary>
-        /// Create a watermark filter.
+        /// Create a watermark texture input.
         /// </summary>
-        /// <param name="width">Recording width.</param>
-        /// <param name="height">Recording height.</param>
-        public WatermarkFilter (int width, int height) {
+        /// <param name="input">Backing texture input to receive watermarked frames.</param>
+        public WatermarkTextureInput (ITextureInput input) {
+            this.input = input;
             this.material = new Material(Shader.Find(@"Hidden/NCPX/WatermarkFilter"));
-            this.frameSizeInv = new Vector2(1f / width, 1f / height);
-            this.displayRect = new RectInt(0, 0, width, height);
+            this.frameSizeInv = new Vector2(1f / input.frameSize.width, 1f / input.frameSize.height);
+            this.displayRect = new RectInt(0, 0, input.frameSize.width, input.frameSize.height);
             this.aspectMode = 0;
         }
 
         /// <summary>
-        /// Filter a frame.
+        /// Commit a video frame from a texture.
         /// </summary>
-        /// <param name="source">Source texture.</param>
-        /// <param name="destination">Destination texture.</param>
-        public void FilterFrame (Texture source, RenderTexture destination) {
+        /// <param name="texture">Source texture.</param>
+        /// <param name="timestamp">Frame timestamp in nanoseconds.</param>
+        public void CommitFrame (Texture texture, long timestamp) {
+            var result = RenderTexture.GetTemporary(texture.width, texture.height, 0, RenderTextureFormat.ARGB32);
+            CommitFrame(texture, result);
+            input.CommitFrame(result, timestamp);
+            RenderTexture.ReleaseTemporary(result);
+        }
+
+        /// <summary>
+        /// Stop recorder input and release resources.
+        /// </summary>
+        public void Dispose () {
+            input.Dispose();
+            Material.Destroy(material);
+        }
+        #endregion
+
+
+        #region --Operations--
+
+        private readonly ITextureInput input;
+        private readonly Material material;
+        private readonly Vector2 frameSizeInv;
+
+        (int, int) ITextureInput.frameSize => input.frameSize;
+
+        private void CommitFrame (Texture source, RenderTexture destination) {
             // Base
             Graphics.Blit(source, destination);
             if (!watermark)
@@ -71,17 +95,6 @@ namespace NatSuite.Recorders.Filters {
             material.SetMatrix("_Transform", inverse);
             Graphics.Blit(watermark, destination, material);
         }
-
-        /// <summary>
-        /// Dispose the filter.
-        /// </summary>
-        public void Dispose () => Material.Destroy(material);
-        #endregion
-
-
-        #region --Operations--
-        private readonly Material material;
-        private readonly Vector2 frameSizeInv;
         #endregion
     }
 }

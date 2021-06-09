@@ -4,7 +4,8 @@
 */
 
 namespace NatSuite.Recorders {
-    
+
+    using System;
     using Internal;
 
     /// <summary>
@@ -32,7 +33,25 @@ namespace NatSuite.Recorders {
             int channelCount = 0,
             int videoBitRate = 10_000_000,
             int audioBitRate = 64_000 // INCOMPLETE // CHECK
-        ) : base(WebBridge.CreateWEBMRecorder(width, height, frameRate, sampleRate, channelCount, videoBitRate)) { }
+        ) : base(Create(width, height, frameRate, sampleRate, channelCount, videoBitRate, audioBitRate)) { }
+        #endregion
+
+
+        #region --Operations--
+
+        private static IntPtr Create (int width, int height, float frameRate, int sampleRate, int channelCount, int videoBitRate, int audioBitRate) {
+            WebBridge.CreateWEBMRecorder(
+                width,
+                height,
+                frameRate,
+                sampleRate,
+                channelCount,
+                videoBitRate,
+                audioBitRate,
+                out var recorder
+            );
+            return recorder;
+        }
         #endregion
     }
 }

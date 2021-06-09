@@ -2,7 +2,8 @@
     "name": "NatSuite.Recorders.Extensions",
     "references": [
         "NatSuite.Recorders",
-        "NatSuite.Rendering"
+        "NatSuite.Rendering",
+        "Unity.Mathematics"
     ],
     "includePlatforms": [
         "Android",

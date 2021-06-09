@@ -3,7 +3,7 @@
 *   Copyright (c) 2021 Yusuf Olokoba.
 */
 
-namespace NatSuite.Recorders.Filters {
+namespace NatSuite.Recorders.Inputs {
 
     /// <summary>
     /// Image aspect mode.
