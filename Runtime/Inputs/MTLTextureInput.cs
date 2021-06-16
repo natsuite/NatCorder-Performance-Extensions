@@ -39,10 +39,13 @@ namespace NatSuite.Recorders.Inputs {
         /// </summary>
         /// <param name="texture">Source texture.</param>
         /// <param name="timestamp">Frame timestamp in nanoseconds.</param>
-        public unsafe void CommitFrame (Texture texture, long timestamp) => readback.Request(texture, pixelBuffer => recorder?.CommitFrame(
-            NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(pixelBuffer),
-            timestamp
-        ));
+        public unsafe void CommitFrame (Texture texture, long timestamp) => readback.Request(
+            texture,
+            pixelBuffer => recorder?.CommitFrame(
+                NativeArrayUnsafeUtility.GetUnsafeBufferPointerWithoutChecks(pixelBuffer),
+                timestamp
+            )
+        );
 
         /// <summary>
         /// Stop recorder input and release resources.
